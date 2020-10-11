@@ -285,7 +285,12 @@ in package-set { inherit pkgs stdenv callPackage; } self // {
     #
     #     bash$ nix-shell --run "cabal new-build all"
     #     bash$ nix-shell --run "python"
-    shellFor = { packages, withHoogle ? false, ... } @ args:
+    shellFor =
+      { packages
+      , withHoogle ? false
+      , withBenchmarks ? false
+      , ...
+      } @ args:
       let
         combinedPackageFor = packages:
           let
@@ -311,11 +316,13 @@ in package-set { inherit pkgs stdenv callPackage; } self // {
               inherit pname;
               version = "0";
               license = null;
+              doBenchmark = withBenchmarks;
             } // packageInputs;
 
           in self.mkDerivation genericBuilderArgs;
 
-        mkDerivationArgs = builtins.removeAttrs args [ "packages" "withHoogle" ];
+        mkDerivationArgs =
+          builtins.removeAttrs args [ "packages" "withHoogle" "withBenchmarks" ];
       in ((combinedPackageFor packages).envFunc { inherit withHoogle; }).overrideAttrs (old: mkDerivationArgs // {
         nativeBuildInputs = old.nativeBuildInputs ++ mkDerivationArgs.nativeBuildInputs or [];
         buildInputs = old.buildInputs ++ mkDerivationArgs.buildInputs or [];
