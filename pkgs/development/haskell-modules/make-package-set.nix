@@ -288,7 +288,6 @@ in package-set { inherit pkgs stdenv callPackage; } self // {
     shellFor =
       { packages
       , withHoogle ? false
-      , withBenchmarks ? false
       , ...
       } @ args:
       let
@@ -316,13 +315,13 @@ in package-set { inherit pkgs stdenv callPackage; } self // {
               inherit pname;
               version = "0";
               license = null;
-              doBenchmark = withBenchmarks;
+              doBenchmark = args.doBenchmark or false;
             } // packageInputs;
 
           in self.mkDerivation genericBuilderArgs;
 
         mkDerivationArgs =
-          builtins.removeAttrs args [ "packages" "withHoogle" "withBenchmarks" ];
+          builtins.removeAttrs args [ "packages" "withHoogle" ];
       in ((combinedPackageFor packages).envFunc { inherit withHoogle; }).overrideAttrs (old: mkDerivationArgs // {
         nativeBuildInputs = old.nativeBuildInputs ++ mkDerivationArgs.nativeBuildInputs or [];
         buildInputs = old.buildInputs ++ mkDerivationArgs.buildInputs or [];
